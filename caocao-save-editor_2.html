@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三國曹操傳 · Save State Editor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Serif+SC:wght@400;700&display=swap');
+
+  :root {
+    --ink: #1a0a00;
+    --paper: #f5e9c8;
+    --aged: #d4b483;
+    --red: #b5271b;
+    --gold: #c8861a;
+    --jade: #2a6b4a;
+    --shadow: #7a4a1a;
+    --pixel: #3d1f00;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--ink);
+    min-height: 100vh;
+    font-family: 'Noto Serif SC', serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 16px 64px;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.015) 3px, rgba(255,255,255,0.015) 4px),
+      radial-gradient(ellipse at 50% 0%, #3d1500 0%, #1a0a00 60%);
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom, transparent 0px, transparent 2px,
+      rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  .frame {
+    width: 100%;
+    max-width: 720px;
+    border: 4px solid var(--gold);
+    box-shadow: 0 0 0 8px var(--ink), 0 0 0 10px var(--gold),
+      0 0 40px rgba(200,134,26,0.4), inset 0 0 60px rgba(0,0,0,0.3);
+    background: var(--paper);
+    position: relative;
+  }
+
+  .frame::before, .frame::after {
+    content: '◈'; position: absolute; color: var(--gold); font-size: 18px; top: -14px;
+  }
+  .frame::before { left: -14px; }
+  .frame::after  { right: -14px; }
+
+  /* HEADER */
+  .header {
+    background: var(--red);
+    padding: 20px 24px 16px;
+    text-align: center;
+    border-bottom: 3px solid var(--gold);
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0,0,0,0.06) 8px, rgba(0,0,0,0.06) 16px);
+  }
+  .title-cn {
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 700; font-size: 28px; color: var(--gold);
+    letter-spacing: 6px;
+    text-shadow: 2px 2px 0 #5a0000, 0 0 20px rgba(200,134,26,0.6);
+    position: relative;
+    animation: glow 3s ease-in-out infinite;
+  }
+  .title-en {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px; color: rgba(245,233,200,0.7);
+    margin-top: 8px; letter-spacing: 2px; position: relative;
+  }
+  .badge {
+    display: inline-block; background: var(--gold); color: var(--ink);
+    font-family: 'Press Start 2P', monospace; font-size: 6px;
+    padding: 3px 8px; margin-top: 10px; letter-spacing: 1px; position: relative;
+  }
+
+  /* INSTRUCTIONS */
+  .instructions {
+    background: rgba(26,10,0,0.06);
+    border-bottom: 1px solid var(--aged);
+    padding: 14px 24px;
+    font-size: 11px;
+    color: var(--shadow);
+    line-height: 1.9;
+  }
+  .instructions strong { color: var(--pixel); }
+  .instructions ol { padding-left: 18px; }
+  .instructions code {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px; background: rgba(26,10,0,0.08);
+    padding: 1px 5px; color: var(--red);
+  }
+  .instr-title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px; color: var(--pixel);
+    margin-bottom: 8px; letter-spacing: 1px;
+  }
+
+  /* UPLOAD */
+  .upload-section { padding: 22px 24px 0; }
+
+  .drop-zone {
+    border: 3px dashed var(--shadow);
+    background: rgba(26,10,0,0.04);
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: var(--gold);
+    background: rgba(200,134,26,0.08);
+    box-shadow: inset 0 0 20px rgba(200,134,26,0.1);
+  }
+  .drop-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .drop-icon { font-size: 36px; margin-bottom: 10px; display: block; }
+  .drop-label {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 8px; color: var(--pixel); line-height: 2;
+  }
+  .drop-sub { font-size: 11px; color: var(--shadow); margin-top: 6px; }
+
+  .file-info {
+    margin: 10px 0 0; padding: 10px 14px;
+    background: rgba(42,107,74,0.08); border-left: 3px solid var(--jade);
+    font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--jade);
+    display: none; word-break: break-all; line-height: 2.2;
+  }
+  .file-info.visible { display: block; }
+
+  .offset-bar {
+    margin: 8px 0 0; padding: 8px 14px;
+    background: rgba(181,39,27,0.05); border-left: 3px solid var(--red);
+    font-family: 'Press Start 2P', monospace; font-size: 6px; color: var(--red);
+    display: none; line-height: 2.4;
+  }
+  .offset-bar.visible { display: block; }
+
+  /* DIVIDER */
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    padding: 18px 24px 0; color: var(--shadow); font-size: 13px; letter-spacing: 3px;
+  }
+  .divider::before, .divider::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(to right, transparent, var(--aged), transparent);
+  }
+
+  /* FIELDS */
+  .fields-section { padding: 14px 24px 24px; display: none; }
+  .fields-section.visible { display: block; }
+
+  .field-group {
+    margin-bottom: 18px; border: 2px solid var(--aged);
+    background: white; transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .field-group-header {
+    background: var(--pixel); color: var(--gold);
+    font-family: 'Press Start 2P', monospace; font-size: 7px;
+    padding: 7px 12px; letter-spacing: 1px;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;
+  }
+  .field-addr { color: rgba(200,134,26,0.55); font-size: 6px; }
+
+  .field-body { padding: 14px 16px; display: flex; align-items: center; gap: 16px; }
+  .field-label {
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 700; font-size: 15px; color: var(--ink); min-width: 76px;
+  }
+  .field-input-wrap { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+  .field-input {
+    width: 100%; border: 2px solid var(--aged); background: var(--paper);
+    font-family: 'Press Start 2P', monospace; font-size: 10px; color: var(--pixel);
+    padding: 9px 12px; outline: none; transition: border-color 0.15s;
+  }
+  .field-input:focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(200,134,26,0.2); }
+  .field-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .field-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .hex-preview {
+    font-family: 'Press Start 2P', monospace; font-size: 6px; color: var(--shadow);
+    background: rgba(26,10,0,0.05); padding: 3px 8px; border: 1px solid var(--aged);
+  }
+  .file-offset {
+    font-family: 'Press Start 2P', monospace; font-size: 6px;
+    color: rgba(181,39,27,0.7); background: rgba(181,39,27,0.04);
+    padding: 3px 8px; border: 1px solid rgba(181,39,27,0.2);
+  }
+  .range-hint { font-size: 10px; color: var(--shadow); }
+
+  .field-group.changed .field-group-header { background: var(--jade); }
+  .field-group.changed { border-color: var(--jade); box-shadow: 0 0 8px rgba(42,107,74,0.3); }
+
+  /* ADVANCED */
+  .advanced-wrap { padding: 14px 24px 0; }
+  .advanced-toggle {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px; color: var(--shadow);
+    cursor: pointer; user-select: none;
+    display: inline-flex; align-items: center; gap: 6px; padding: 4px 0;
+  }
+  .advanced-toggle:hover { color: var(--pixel); }
+  .advanced-panel {
+    margin-top: 10px; padding: 14px 16px;
+    background: rgba(26,10,0,0.04); border: 1px dashed var(--aged);
+    display: none;
+  }
+  .advanced-panel.visible { display: block; }
+  .adv-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .adv-label { font-family: 'Press Start 2P', monospace; font-size: 6px; color: var(--pixel); min-width: 140px; }
+  .adv-input {
+    border: 2px solid var(--aged); background: var(--paper);
+    font-family: 'Press Start 2P', monospace; font-size: 8px; color: var(--pixel);
+    padding: 5px 10px; outline: none; width: 110px;
+  }
+  .adv-input:focus { border-color: var(--gold); }
+  .adv-desc { font-size: 10px; color: var(--shadow); }
+
+  /* BUTTONS */
+  .actions { padding: 0 24px 24px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn {
+    font-family: 'Press Start 2P', monospace; font-size: 8px;
+    padding: 12px 18px; border: 3px solid; cursor: pointer;
+    letter-spacing: 1px; position: relative; transition: transform 0.1s;
+  }
+  .btn:active { transform: translate(2px, 2px); }
+  .btn::after {
+    content: ''; position: absolute; bottom: -4px; right: -4px;
+    width: 100%; height: 100%; border: 2px solid; z-index: -1;
+  }
+  .btn-save { background: var(--red); color: var(--paper); border-color: #8a1010; }
+  .btn-save::after { border-color: #8a1010; background: #8a1010; }
+  .btn-save:hover { background: #c8301a; }
+  .btn-reset { background: var(--paper); color: var(--pixel); border-color: var(--shadow); }
+  .btn-reset::after { border-color: var(--shadow); background: var(--shadow); }
+  .btn-reset:hover { background: var(--aged); }
+
+  /* STATUS */
+  .status {
+    padding: 10px 24px; font-family: 'Press Start 2P', monospace;
+    font-size: 7px; min-height: 34px; border-top: 1px solid var(--aged);
+    color: var(--jade); display: none; line-height: 2;
+  }
+  .status.visible { display: block; }
+  .status.error { color: var(--red); }
+  .status.warn  { color: var(--gold); }
+
+  .dragon { text-align: center; font-size: 22px; padding: 6px 0 0; letter-spacing: 8px; color: var(--gold); opacity: 0.5; }
+
+  @keyframes glow {
+    0%,100% { text-shadow: 2px 2px 0 #5a0000, 0 0 20px rgba(200,134,26,0.4); }
+    50%      { text-shadow: 2px 2px 0 #5a0000, 0 0 30px rgba(200,134,26,0.8), 0 0 50px rgba(200,134,26,0.3); }
+  }
+
+  .footer {
+    margin-top: 16px; font-family: 'Press Start 2P', monospace;
+    font-size: 6px; color: rgba(200,134,26,0.35); letter-spacing: 2px; text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<div class="frame">
+
+  <div class="header">
+    <div class="title-cn">三國曹操傳</div>
+    <div class="title-en">THREE KINGDOMS · CAO CAO SAVE STATE EDITOR</div>
+    <div class="badge">◄ FC 南晶版 · OPENEMU NESTOPIA NST FORMAT ►</div>
+  </div>
+
+  <div class="instructions">
+    <div class="instr-title">⚠ HOW TO USE · 使用說明</div>
+    <ol>
+      <li><strong>Right-click</strong> your <code>.oesavestate</code> file → <strong>Show Package Contents</strong></li>
+      <li>Drag the <strong><code>State</code></strong> file (not Info.plist or ScreenShot) into the drop zone below</li>
+      <li>Edit your values, then click <strong>Save &amp; Download</strong></li>
+      <li><strong>Replace</strong> the <code>State</code> file inside the bundle with the downloaded file</li>
+      <li>Reload your save state in OpenEmu ✦ Keep a backup first!</li>
+    </ol>
+  </div>
+
+  <div class="upload-section">
+    <div class="drop-zone" id="dropZone">
+      <input type="file" id="fileInput">
+      <span class="drop-icon">📜</span>
+      <div class="drop-label">DROP THE "State" FILE HERE</div>
+      <div class="drop-sub">（從 .oesavestate bundle 內取出的 State 檔案）</div>
+    </div>
+    <div class="file-info"  id="fileInfo"></div>
+    <div class="offset-bar" id="offsetBar"></div>
+  </div>
+
+  <div class="advanced-wrap">
+    <div class="advanced-toggle" id="advToggle">▶ ADVANCED · WRM OFFSET OVERRIDE</div>
+    <div class="advanced-panel" id="advPanel">
+      <div class="adv-row">
+        <span class="adv-label">WRM CHUNK OFFSET (hex):</span>
+        <input class="adv-input" type="text" id="wrmOffsetInput" value="0x1316" placeholder="0x1316">
+        <span class="adv-desc">Default: <strong>0x1316</strong> — adjust only if values read incorrectly</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider">✦ 編輯欄位 ✦</div>
+
+  <div class="fields-section" id="fieldsSection">
+
+    <div class="field-group" id="group-gold">
+      <div class="field-group-header">
+        <span>GOLD · 金錢</span>
+        <span class="field-addr">NES: 0x7F2C (lo) + 0x7F2D (hi) &nbsp;·&nbsp; 16-bit little-endian</span>
+      </div>
+      <div class="field-body">
+        <div class="field-label">金 錢</div>
+        <div class="field-input-wrap">
+          <input class="field-input" type="number" id="val-gold" min="0" max="65535" placeholder="0">
+          <div class="field-meta">
+            <span class="hex-preview" id="hex-gold">HEX: 0x0000</span>
+            <span class="file-offset" id="off-gold">FILE: 0x3242 / 0x3243</span>
+            <span class="range-hint">0 – 65535</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field-group" id="group-revive">
+      <div class="field-group-header">
+        <span>REVIVE GRASS · 復活草</span>
+        <span class="field-addr">NES: 0x7F36 &nbsp;·&nbsp; 8-bit</span>
+      </div>
+      <div class="field-body">
+        <div class="field-label">復活草</div>
+        <div class="field-input-wrap">
+          <input class="field-input" type="number" id="val-revive" min="0" max="255" placeholder="0">
+          <div class="field-meta">
+            <span class="hex-preview" id="hex-revive">HEX: 0x00</span>
+            <span class="file-offset" id="off-revive">FILE: 0x3256</span>
+            <span class="range-hint">0 – 255</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field-group" id="group-troops">
+      <div class="field-group-header">
+        <span>TROOPS × 100 · 兵力</span>
+        <span class="field-addr">NES: 0x7F38 &nbsp;·&nbsp; 8-bit</span>
+      </div>
+      <div class="field-body">
+        <div class="field-label">兵 力</div>
+        <div class="field-input-wrap">
+          <input class="field-input" type="number" id="val-troops" min="0" max="255" placeholder="0">
+          <div class="field-meta">
+            <span class="hex-preview" id="hex-troops">HEX: 0x00</span>
+            <span class="file-offset" id="off-troops">FILE: 0x3258</span>
+            <span class="range-hint">0 – 255 (×100 troops)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="actions" id="actionsSection" style="display:none">
+    <button class="btn btn-save"  id="btnSave">⬇ SAVE & DOWNLOAD</button>
+    <button class="btn btn-reset" id="btnReset">↺ RESET VALUES</button>
+  </div>
+
+  <div class="status" id="status"></div>
+  <div class="dragon">龍 ⚔ 龍</div>
+  <div style="height:14px"></div>
+</div>
+
+<div class="footer">FC 南晶版 · NESTOPIA NST FORMAT · WRM CHUNK OFFSET 0x1316 · NES SRAM 0x6000–0x7FFF</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────
+//  NST Save State — Nestopia core (OpenEmu)
+//
+//  Structure: NFO · CPU>RAM · PPU · IMG>MPR>WRM (SRAM) · IMG>MPR>VRM
+//
+//  WRM chunk data starts at file offset 0x1316 (FC南晶版 default).
+//  NES SRAM spans addresses 0x6000–0x7FFF.
+//  File offset = WRM_START + (NES_addr − 0x6000)
+//
+//  Gold   16-bit LE:  NES 0x7F2C/0x7F2D  →  file 0x3242/0x3243
+//  Revive  8-bit:     NES 0x7F36         →  file 0x3256
+//  Troops  8-bit:     NES 0x7F38         →  file 0x3258
+// ─────────────────────────────────────────────────────────────
+
+const DEFAULT_WRM   = 0x1316;
+const NES_SRAM_BASE = 0x6000;
+
+const FIELDS = {
+  gold:   { nesAddr: 0x7F2C, bytes: 2, max: 65535 },
+  revive: { nesAddr: 0x7F36, bytes: 1, max: 255   },
+  troops: { nesAddr: 0x7F38, bytes: 1, max: 255   },
+};
+
+let fileBytes      = null;
+let fileName       = '';
+let originalValues = {};
+
+// ── Helpers ──────────────────────────────────────────────────
+function getWRM() {
+  const raw = document.getElementById('wrmOffsetInput').value.trim();
+  const n   = parseInt(raw, (raw.startsWith('0x') || raw.startsWith('0X')) ? 16 : 10);
+  return isNaN(n) ? DEFAULT_WRM : n;
+}
+
+function fileOff(nesAddr) {
+  return getWRM() + (nesAddr - NES_SRAM_BASE);
+}
+
+function toHex(val, bytes) {
+  return '0x' + val.toString(16).toUpperCase().padStart(bytes * 2, '0');
+}
+
+function setStatus(msg, type) {
+  const s = document.getElementById('status');
+  s.textContent = msg;
+  s.className = 'status visible' + (type === 'error' ? ' error' : type === 'warn' ? ' warn' : '');
+}
+
+// ── Read / Write ─────────────────────────────────────────────
+function readField(bytes, field) {
+  const off = fileOff(field.nesAddr);
+  if (field.bytes === 1) return bytes[off];
+  return bytes[off] | (bytes[off + 1] << 8);
+}
+
+function writeField(bytes, field, value) {
+  const off = fileOff(field.nesAddr);
+  bytes[off] = value & 0xFF;
+  if (field.bytes === 2) bytes[off + 1] = (value >> 8) & 0xFF;
+}
+
+// ── UI helpers ───────────────────────────────────────────────
+function updateOffsetLabels() {
+  document.getElementById('off-gold').textContent   =
+    'FILE: ' + toHex(fileOff(0x7F2C), 4) + ' / ' + toHex(fileOff(0x7F2D), 4);
+  document.getElementById('off-revive').textContent =
+    'FILE: ' + toHex(fileOff(0x7F36), 4);
+  document.getElementById('off-troops').textContent =
+    'FILE: ' + toHex(fileOff(0x7F38), 4);
+}
+
+function updateHex(id, val, bytes) {
+  document.getElementById('hex-' + id).textContent = 'HEX: ' + toHex(val, bytes);
+}
+
+function markChanged(id, changed) {
+  document.getElementById('group-' + id).classList.toggle('changed', changed);
+}
+
+// ── Load ─────────────────────────────────────────────────────
+async function loadFile(file) {
+  fileName  = file.name;
+  const buf = await file.arrayBuffer();
+  fileBytes = new Uint8Array(buf);
+
+  const needed = fileOff(0x7F38) + 1;
+  if (fileBytes.length < needed) {
+    setStatus(
+      '✖ File too small (' + fileBytes.length + ' B). Need ≥ ' + needed +
+      ' B. Did you open the State file (not the .oesavestate bundle)?', 'error'
+    );
+    return;
+  }
+
+  // Check NST magic: bytes 0–2 = "NST" (0x4E 0x53 0x54)
+  const isNST = fileBytes[0] === 0x4E && fileBytes[1] === 0x53 && fileBytes[2] === 0x54;
+
+  updateOffsetLabels();
+
+  for (const [id, field] of Object.entries(FIELDS)) {
+    const val = readField(fileBytes, field);
+    originalValues[id] = val;
+    document.getElementById('val-' + id).value = val;
+    updateHex(id, val, field.bytes);
+    markChanged(id, false);
+  }
+
+  const wrm = getWRM();
+  document.getElementById('fileInfo').innerHTML =
+    '📁 ' + fileName +
+    ' &nbsp;·&nbsp; ' + fileBytes.length + ' bytes' +
+    (isNST
+      ? ' &nbsp;·&nbsp; ✔ NST signature detected'
+      : ' &nbsp;·&nbsp; ⚠ NST magic not found — verify WRM offset');
+  document.getElementById('fileInfo').className = 'file-info visible';
+
+  document.getElementById('offsetBar').textContent =
+    'WRM base: ' + toHex(wrm, 4) +
+    '  |  Gold lo: ' + toHex(fileOff(0x7F2C), 4) +
+    '  hi: ' + toHex(fileOff(0x7F2D), 4) +
+    '  |  Revive: ' + toHex(fileOff(0x7F36), 4) +
+    '  |  Troops: ' + toHex(fileOff(0x7F38), 4);
+  document.getElementById('offsetBar').className = 'offset-bar visible';
+
+  document.getElementById('fieldsSection').className = 'fields-section visible';
+  document.getElementById('actionsSection').style.display = 'flex';
+
+  setStatus(
+    isNST
+      ? '✔ State file loaded — NST format confirmed · WRM base ' + toHex(wrm, 4)
+      : '⚠ Loaded but NST header not found. Check WRM offset in Advanced if values look wrong.',
+    isNST ? 'ok' : 'warn'
+  );
+}
+
+// ── Inputs ───────────────────────────────────────────────────
+for (const [id, field] of Object.entries(FIELDS)) {
+  document.getElementById('val-' + id).addEventListener('input', function () {
+    const v = Math.min(field.max, Math.max(0, parseInt(this.value) || 0));
+    updateHex(id, v, field.bytes);
+    markChanged(id, v !== originalValues[id]);
+  });
+}
+
+document.getElementById('wrmOffsetInput').addEventListener('change', () => {
+  updateOffsetLabels();
+  if (fileBytes) loadFile(new File([fileBytes], fileName));
+});
+
+// ── Save ─────────────────────────────────────────────────────
+document.getElementById('btnSave').addEventListener('click', () => {
+  if (!fileBytes) return setStatus('No file loaded.', 'error');
+  const modified = new Uint8Array(fileBytes);
+
+  for (const [id, field] of Object.entries(FIELDS)) {
+    const v = Math.min(field.max, Math.max(0, parseInt(document.getElementById('val-' + id).value) || 0));
+    writeField(modified, field, v);
+  }
+
+  const blob = new Blob([modified], { type: 'application/octet-stream' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = fileName || 'State'; a.click();
+  URL.revokeObjectURL(url);
+
+  setStatus('✔ Downloaded "' + (fileName || 'State') + '" — replace the State file inside your .oesavestate bundle');
+});
+
+// ── Reset ────────────────────────────────────────────────────
+document.getElementById('btnReset').addEventListener('click', () => {
+  for (const [id, field] of Object.entries(FIELDS)) {
+    const v = originalValues[id] ?? 0;
+    document.getElementById('val-' + id).value = v;
+    updateHex(id, v, field.bytes);
+    markChanged(id, false);
+  }
+  setStatus('↺ Values reset to original');
+});
+
+// ── File input & drag/drop ───────────────────────────────────
+document.getElementById('fileInput').addEventListener('change', e => {
+  if (e.target.files[0]) loadFile(e.target.files[0]);
+});
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('drag-over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+});
+
+// ── Advanced toggle ──────────────────────────────────────────
+document.getElementById('advToggle').addEventListener('click', () => {
+  const p    = document.getElementById('advPanel');
+  const t    = document.getElementById('advToggle');
+  const open = p.classList.toggle('visible');
+  t.textContent = (open ? '▼' : '▶') + ' ADVANCED · WRM OFFSET OVERRIDE';
+});
+
+updateOffsetLabels();
+</script>
+</body>
+</html>
