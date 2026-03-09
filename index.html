@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>三國曹操傳 · Save State Editor</title>
+<title>三國志 - 曹操傳 · 存档编辑器</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Press+Start+2P&family=Noto+Serif+SC:wght@400;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Noto+Serif+SC:wght@400;700&display=swap');
 
   :root {
     --ink: #1a0a00;
@@ -52,50 +52,47 @@
   .header {
     background: var(--red);
     padding: 20px 24px 16px;
-    text-align: center;
     border-bottom: 3px solid var(--gold);
     position: relative;
     overflow: hidden;
   }
+  .header-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .header-art-wrap {
+    width: 50%;
+    min-width: 110px;
+    max-width: 220px;
+    display: flex;
+    justify-content: center;
+  }
+  .header-copy {
+    flex: 1;
+    text-align: center;
+  }
+  .header-art {
+    display: block;
+    width: 100%;
+    margin: 0;
+    border: 2px solid rgba(245,233,200,0.55);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+  }
   .title-cn {
     font-family: 'Noto Serif SC', serif;
-    font-weight: 700; font-size: clamp(30px, 4vw, 42px); color: var(--gold);
+    font-weight: 700; font-size: clamp(36px, 4.8vw, 54px); color: var(--gold);
     letter-spacing: 6px;
     text-shadow: 2px 2px 0 #5a0000;
     position: relative;
   }
-  .title-en {
-    font-family: 'Press Start 2P', monospace;
-    font-size: clamp(8px, 1.1vw, 11px); color: rgba(245,233,200,0.78);
-    margin-top: 8px; letter-spacing: 2px; position: relative;
-  }
   .badge {
     display: inline-block; background: var(--gold); color: var(--ink);
-    font-family: 'Press Start 2P', monospace; font-size: clamp(7px, 0.95vw, 10px);
-    padding: 6px 10px; margin-top: 12px; letter-spacing: 1px; position: relative;
+    font-family: 'Noto Serif SC', serif; font-size: clamp(10px, 1.2vw, 14px);
+    padding: 8px 12px; margin-top: 14px; letter-spacing: 1px; position: relative;
   }
 
-  /* INSTRUCTIONS */
-  .instructions {
-    background: rgba(26,10,0,0.06);
-    border-bottom: 1px solid var(--aged);
-    padding: 18px 28px;
-    font-size: clamp(13px, 1.15vw, 16px);
-    color: var(--shadow);
-    line-height: 1.8;
-  }
-  .instructions strong { color: var(--pixel); }
-  .instructions ol { padding-left: 18px; }
-  .instructions code {
-    font-family: 'Press Start 2P', monospace;
-    font-size: clamp(9px, 0.95vw, 12px); background: rgba(26,10,0,0.08);
-    padding: 1px 5px; color: var(--red);
-  }
-  .instr-title {
-    font-family: 'Press Start 2P', monospace;
-    font-size: clamp(10px, 1vw, 13px); color: var(--pixel);
-    margin-bottom: 10px; letter-spacing: 1px;
-  }
 
   /* UPLOAD */
   .upload-section { padding: 24px 28px 0; }
@@ -119,7 +116,7 @@
   }
   .drop-icon { font-size: 42px; margin-bottom: 12px; display: block; }
   .drop-label {
-    font-family: 'Press Start 2P', monospace;
+    font-family: 'Noto Serif SC', serif;
     font-size: clamp(10px, 1vw, 13px); color: var(--pixel); line-height: 1.9;
   }
   .drop-sub { font-size: clamp(12px, 1.1vw, 15px); color: var(--shadow); margin-top: 8px; }
@@ -127,18 +124,30 @@
   .file-info {
     margin: 12px 0 0; padding: 12px 14px;
     background: rgba(42,107,74,0.08); border-left: 3px solid var(--jade);
-    font-family: 'Press Start 2P', monospace; font-size: clamp(9px, 0.95vw, 11px); color: var(--jade);
-    display: none; word-break: break-all; line-height: 2.2;
+    font-family: 'Noto Serif SC', serif; font-size: clamp(9px, 0.95vw, 11px); color: var(--jade);
+    display: none; word-break: break-word; line-height: 1.7;
   }
   .file-info.visible { display: block; }
-
-  .offset-bar {
-    margin: 10px 0 0; padding: 10px 14px;
-    background: rgba(181,39,27,0.05); border-left: 3px solid var(--red);
-    font-family: 'Press Start 2P', monospace; font-size: clamp(8px, 0.9vw, 10px); color: var(--red);
-    display: none; line-height: 2.4;
+  .file-info-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .file-chip {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(42,107,74,0.25);
+    background: rgba(255,255,255,0.65);
+    padding: 4px 8px;
+    border-radius: 4px;
   }
-  .offset-bar.visible { display: block; }
+  .file-chip.status-ok {
+    color: var(--jade);
+    border-color: rgba(42,107,74,0.45);
+    background: rgba(42,107,74,0.08);
+  }
+  .file-chip.status-warn {
+    color: var(--red);
+    border-color: rgba(181,39,27,0.45);
+    background: rgba(181,39,27,0.08);
+  }
+
 
   /* DIVIDER */
   .divider {
@@ -153,57 +162,54 @@
   /* FIELDS */
   .fields-section { padding: 16px 28px 28px; display: none; }
   .fields-section.visible {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 14px;
+    display: block;
   }
 
   .field-group {
-    margin-bottom: 0; border: 2px solid var(--aged);
+    margin-bottom: 14px;
+    border: 2px solid var(--aged);
     background: #fffdf6;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
     transition: border-color 0.2s, box-shadow 0.2s;
   }
-  .field-group-header {
-    background: var(--pixel); color: var(--gold);
-    font-family: 'Press Start 2P', monospace; font-size: clamp(9px, 0.95vw, 12px);
-    padding: 10px 14px; letter-spacing: 1px;
-    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;
-  }
-  .field-addr { color: rgba(200,134,26,0.68); font-size: clamp(8px, 0.85vw, 10px); }
-
-  .field-body { padding: 18px 18px; display: flex; align-items: center; gap: 20px; }
-  .field-label {
+  .field-group:last-child { margin-bottom: 0; }
+  .field-name {
     font-family: 'Noto Serif SC', serif;
-    font-weight: 700; font-size: clamp(18px, 1.5vw, 22px); color: var(--ink); min-width: 92px;
+    font-weight: 700;
+    font-size: clamp(13px, 1.05vw, 16px);
+    color: var(--pixel);
+    min-width: 120px;
   }
-  .field-input-wrap { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+  .field-addr { color: rgba(181,39,27,0.8); font-size: clamp(10px, 0.9vw, 12px); }
   .field-input {
-    width: 100%; border: 2px solid var(--aged); background: var(--paper);
+    width: 220px; border: 2px solid var(--aged); background: var(--paper);
     font-family: 'JetBrains Mono', monospace; font-size: clamp(16px, 1.1vw, 18px); font-weight: 700; color: var(--pixel);
-    padding: 12px 14px; outline: none; transition: border-color 0.15s;
+    padding: 8px 10px; outline: none; transition: border-color 0.15s;
   }
   .field-input:focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(200,134,26,0.2); }
   .field-input::-webkit-inner-spin-button { -webkit-appearance: none; }
 
-  .field-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-  .hex-preview {
-    font-family: 'JetBrains Mono', monospace; font-size: clamp(11px, 0.85vw, 12px); color: var(--shadow);
-    background: rgba(26,10,0,0.05); padding: 6px 8px; border: 1px solid var(--aged);
+  .range-hint {
+    min-width: 74px;
+    font-size: clamp(12px, 1vw, 14px);
+    color: var(--shadow);
+    text-align: left;
   }
-  .file-offset {
-    font-family: 'JetBrains Mono', monospace; font-size: clamp(11px, 0.85vw, 12px);
-    color: rgba(181,39,27,0.7); background: rgba(181,39,27,0.04);
-    padding: 6px 8px; border: 1px solid rgba(181,39,27,0.2);
-  }
-  .range-hint { font-size: clamp(12px, 1vw, 14px); color: var(--shadow); }
 
-  .field-group.changed .field-group-header { background: var(--jade); }
-  .field-group.changed { border-color: var(--jade); box-shadow: 0 0 8px rgba(42,107,74,0.3); }
+  .field-group.changed {
+    border-color: var(--jade);
+    box-shadow: 0 0 8px rgba(42,107,74,0.3);
+    background: #f6fff8;
+  }
 
   /* ADVANCED */
   .advanced-wrap { padding: 16px 28px 0; }
   .advanced-toggle {
-    font-family: 'Press Start 2P', monospace;
+    font-family: 'Noto Serif SC', serif;
     font-size: clamp(9px, 0.95vw, 12px); color: var(--shadow);
     cursor: pointer; user-select: none;
     display: inline-flex; align-items: center; gap: 6px; padding: 4px 0;
@@ -216,7 +222,7 @@
   }
   .advanced-panel.visible { display: block; }
   .adv-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .adv-label { font-family: 'Press Start 2P', monospace; font-size: clamp(8px, 0.85vw, 10px); color: var(--pixel); min-width: 180px; }
+  .adv-label { font-family: 'Noto Serif SC', serif; font-size: clamp(8px, 0.85vw, 10px); color: var(--pixel); min-width: 180px; }
   .adv-input {
     border: 2px solid var(--aged); background: var(--paper);
     font-family: 'JetBrains Mono', monospace; font-size: clamp(13px, 0.95vw, 14px); font-weight: 700; color: var(--pixel);
@@ -228,7 +234,7 @@
   /* BUTTONS */
   .actions { padding: 0 28px 28px; display: flex; gap: 14px; flex-wrap: wrap; }
   .btn {
-    font-family: 'Press Start 2P', monospace; font-size: clamp(10px, 0.95vw, 12px);
+    font-family: 'Noto Serif SC', serif; font-size: clamp(14px, 1.2vw, 18px);
     padding: 14px 20px; border: 3px solid; cursor: pointer;
     letter-spacing: 1px; transition: transform 0.1s;
   }
@@ -250,9 +256,35 @@
 
   .dragon { text-align: center; font-size: 22px; padding: 6px 0 0; letter-spacing: 8px; color: var(--gold); opacity: 0.5; }
 
-  .footer {
-    margin-top: 16px; font-family: 'Press Start 2P', monospace;
-    font-size: clamp(8px, 0.8vw, 10px); color: rgba(200,134,26,0.42); letter-spacing: 2px; text-align: center;
+  .footer-bar {
+    background: var(--red);
+    border-top: 3px solid var(--gold);
+    padding: 12px 16px 14px;
+    text-align: center;
+  }
+  .footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .footer-link {
+    font-family: 'Noto Serif SC', serif;
+    font-size: clamp(10px, 0.95vw, 13px);
+    color: var(--ink);
+    text-decoration: none;
+    border: 2px solid #8a5a12;
+    background: var(--gold);
+    padding: 5px 10px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+  }
+  .footer-link:hover {
+    background: #d79b33;
+    border-color: #7a4a1a;
   }
 
   @media (max-width: 760px) {
@@ -263,19 +295,35 @@
         0 0 18px rgba(200,134,26,0.2), inset 0 0 20px rgba(0,0,0,0.18);
     }
     .header { padding: 16px 14px 14px; }
-    .title-cn { letter-spacing: 3px; }
-    .title-en { letter-spacing: 1px; }
-    .instructions,
+    .header-main {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+    .header-copy { text-align: center; }
+    .header-art-wrap {
+      width: 100%;
+      min-width: 0;
+      max-width: none;
+    }
+    .header-art {
+      width: 100%;
+    }
+    .footer-bar { padding: 10px 12px 12px; }
+    .title-cn {
+      font-size: clamp(32px, 8vw, 44px);
+      letter-spacing: 3px;
+    }
     .upload-section,
     .advanced-wrap,
     .fields-section,
     .actions,
     .status { padding-left: 14px; padding-right: 14px; }
     .drop-zone { padding: 24px 14px; }
-    .field-body { flex-direction: column; align-items: flex-start; gap: 10px; }
-    .field-label { min-width: 0; }
-    .field-meta { gap: 6px; }
-    .fields-section.visible { grid-template-columns: 1fr; }
+    .field-group { align-items: flex-start; }
+    .field-input { width: 100%; }
+    .range-hint { min-width: 0; text-align: left; }
+    .field-name { min-width: 0; }
     .btn { width: 100%; text-align: center; }
   }
 </style>
@@ -285,31 +333,27 @@
 <div class="frame">
 
   <div class="header">
-    <div class="title-cn">三國曹操傳</div>
-    <div class="title-en">THREE KINGDOMS · CAO CAO SAVE STATE EDITOR</div>
-    <div class="badge">◄ FC 南晶版 · OPENEMU NESTOPIA NST FORMAT ►</div>
+    <div class="header-main">
+      <div class="header-art-wrap">
+        <img class="header-art" src="./docs/images/caocao_game_screen.png" alt="三國志 曹操傳 開場畫面">
+      </div>
+      <div class="header-copy">
+        <div class="title-cn">三國志 - 曹操傳</div>
+        <div class="badge">◄ FC 南晶版 · OPENEMU NESTOPIA NST FORMAT ►</div>
+      </div>
+    </div>
   </div>
 
-  <div class="instructions">
-    <div class="instr-title">⚠ HOW TO USE · 使用說明</div>
-    <ol>
-      <li><strong>Right-click</strong> your <code>.oesavestate</code> file → <strong>Show Package Contents</strong></li>
-      <li>Drag the <strong><code>State</code></strong> file (not Info.plist or ScreenShot) into the drop zone below</li>
-      <li>Edit your values, then click <strong>Save &amp; Download</strong></li>
-      <li><strong>Replace</strong> the <code>State</code> file inside the bundle with the downloaded file</li>
-      <li>Reload your save state in OpenEmu ✦ Keep a backup first!</li>
-    </ol>
-  </div>
+
+  <div class="divider">✦ 載入存檔 ✦</div>
 
   <div class="upload-section">
     <div class="drop-zone" id="dropZone">
       <input type="file" id="fileInput">
       <span class="drop-icon">📜</span>
-      <div class="drop-label">DROP THE "State" FILE HERE</div>
-      <div class="drop-sub">（從 .oesavestate bundle 內取出的 State 檔案）</div>
+      <div class="drop-sub">（從 .oesavestate bundle 內取出的 State 檔案， 并上傳）</div>
     </div>
     <div class="file-info"  id="fileInfo"></div>
-    <div class="offset-bar" id="offsetBar"></div>
   </div>
 
   <div class="advanced-wrap">
@@ -328,16 +372,28 @@
   <div class="fields-section" id="fieldsSection"></div>
 
   <div class="actions" id="actionsSection" style="display:none">
-    <button class="btn btn-save"  id="btnSave">⬇ SAVE & DOWNLOAD</button>
-    <button class="btn btn-reset" id="btnReset">↺ RESET VALUES</button>
+    <button class="btn btn-save"  id="btnSave">⬇ 儲存並下載</button>
+    <button class="btn btn-reset" id="btnReset">↺ 重置</button>
   </div>
 
   <div class="status" id="status"></div>
   <div class="dragon">龍 ⚔ 龍</div>
   <div style="height:14px"></div>
+
+  <div class="footer-bar">
+  <div class="footer-links">
+    <a class="footer-link" href="https://github.com/ppl5/fc-three-kingdoms-game-editor" target="_blank" rel="noopener noreferrer" aria-label="GitHub Repo" title="GitHub Repo">
+      <svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.1 0 0 .67-.21 2.2.82a7.7 7.7 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.09.16 1.9.08 2.1.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"></path>
+      </svg>
+    </a>
+    <a class="footer-link" href="https://github.com/ppl5/fc-three-kingdoms-game-editor#support-author" target="_blank" rel="noopener noreferrer">支持作者</a>
+    <a class="footer-link" href="https://github.com/ppl5/fc-three-kingdoms-game-editor#download-game" target="_blank" rel="noopener noreferrer">游戏下载</a>
+  </div>
+  </div>
+
 </div>
 
-<div class="footer" id="footerNote"></div>
 
 <script src="./config.js"></script>
 <script>
@@ -346,7 +402,7 @@
 //
 //  Structure: NFO · CPU>RAM · PPU · IMG>MPR>WRM (SRAM) · IMG>MPR>VRM
 //
-//  Runtime values (WRM base, NES SRAM range, fields) come from config.js.
+//  Runtime values (NES SRAM range, fields) come from config.js.
 // ─────────────────────────────────────────────────────────────
 
 const CONFIG = window.EDITOR_CONFIG;
@@ -370,24 +426,12 @@ fieldsRoot.innerHTML = FIELDS.map(field => {
     .map((addr, index) => toHex(addr, 2) + (index === 0 && field.bytes === 2 ? ' (lo)' : index === 1 && field.bytes === 2 ? ' (hi)' : ''))
     .join(' + ');
   const bitsLabel = (field.bytes * 8) + '-bit' + (field.bytes === 2 ? ' little-endian' : '');
-  const hexWidth = field.bytes * 2;
   return '' +
     '<div class="field-group" id="group-' + field.id + '">' +
-      '<div class="field-group-header">' +
-        '<span>' + field.labelEn + ' · ' + field.labelZh + '</span>' +
-        '<span class="field-addr">NES: ' + nesLabel + ' &nbsp;·&nbsp; ' + bitsLabel + '</span>' +
-      '</div>' +
-      '<div class="field-body">' +
-        '<div class="field-label">' + field.inputLabel + '</div>' +
-        '<div class="field-input-wrap">' +
-          '<input class="field-input" type="number" id="val-' + field.id + '" min="0" max="' + field.max + '" placeholder="0">' +
-          '<div class="field-meta">' +
-            '<span class="hex-preview" id="hex-' + field.id + '">HEX: 0x' + '0'.repeat(hexWidth) + '</span>' +
-            '<span class="file-offset" id="off-' + field.id + '">FILE: --</span>' +
-            '<span class="range-hint">' + field.rangeHint + '</span>' +
-          '</div>' +
-        '</div>' +
-      '</div>' +
+      '<span class="field-name">' + field.labelEn + ' · ' + field.labelZh + '</span>' +
+      '<span class="range-hint">' + field.rangeHint + '</span>' +
+      '<input class="field-input" type="number" id="val-' + field.id + '" min="0" max="' + field.max + '" placeholder="0">' +
+      '<span class="field-addr">NES: ' + nesLabel + ' · ' + bitsLabel + '</span>' +
     '</div>';
 }).join('');
 
@@ -395,9 +439,6 @@ document.getElementById('wrmOffsetInput').value = toHex(DEFAULT_WRM, 4);
 document.getElementById('wrmOffsetInput').placeholder = toHex(DEFAULT_WRM, 4);
 document.getElementById('wrmDefaultText').innerHTML =
   'Default: <strong>' + toHex(DEFAULT_WRM, 4) + '</strong> — adjust only if values read incorrectly';
-document.getElementById('footerNote').textContent =
-  'FC 南晶版 · NESTOPIA NST FORMAT · WRM CHUNK OFFSET ' + toHex(DEFAULT_WRM, 4) +
-  ' · NES SRAM ' + toHex(NES_SRAM_BASE, 2) + '-' + toHex(NES_SRAM_END, 2);
 
 // ── Helpers ──────────────────────────────────────────────────
 function getWRM() {
@@ -437,18 +478,6 @@ function writeField(bytes, field, value) {
   if (field.bytes === 2) bytes[offs[1]] = (value >> 8) & 0xFF;
 }
 
-// ── UI helpers ───────────────────────────────────────────────
-function updateOffsetLabels() {
-  FIELDS.forEach(field => {
-    const offsets = fieldOffsets(field).map(off => toHex(off, 4)).join(' / ');
-    document.getElementById('off-' + field.id).textContent = 'FILE: ' + offsets;
-  });
-}
-
-function updateHex(id, val, bytes) {
-  document.getElementById('hex-' + id).textContent = 'HEX: ' + toHex(val, bytes);
-}
-
 function markChanged(id, changed) {
   document.getElementById('group-' + id).classList.toggle('changed', changed);
 }
@@ -472,57 +501,48 @@ async function loadFile(file) {
   // Check NST magic: bytes 0–2 = "NST" (0x4E 0x53 0x54)
   const isNST = fileBytes[0] === 0x4E && fileBytes[1] === 0x53 && fileBytes[2] === 0x54;
 
-  updateOffsetLabels();
-
   for (const field of FIELDS) {
     const id = field.id;
     const val = readField(fileBytes, field);
     originalValues[id] = val;
     document.getElementById('val-' + id).value = val;
-    updateHex(id, val, field.bytes);
     markChanged(id, false);
   }
 
-  const wrm = getWRM();
-  document.getElementById('fileInfo').innerHTML =
-    '📁 ' + fileName +
-    ' &nbsp;·&nbsp; ' + fileBytes.length + ' bytes' +
-    (isNST
-      ? ' &nbsp;·&nbsp; ✔ NST signature detected'
-      : ' &nbsp;·&nbsp; ⚠ NST magic not found — verify WRM offset');
+  document.getElementById('fileInfo').innerHTML = isNST
+    ? '<div class="file-info-row">' +
+        '<span class="file-chip">📁 ' + fileName + '</span>' +
+        '<span class="file-chip">' + fileBytes.length + ' bytes</span>' +
+        '<span class="file-chip status-ok">✔ NST confirmed · state loaded</span>' +
+      '</div>'
+    : '<div class="file-info-row">' +
+        '<span class="file-chip">📁 ' + fileName + '</span>' +
+        '<span class="file-chip">' + fileBytes.length + ' bytes</span>' +
+        '<span class="file-chip status-warn">⚠ NST magic not found</span>' +
+      '</div>';
   document.getElementById('fileInfo').className = 'file-info visible';
-
-  document.getElementById('offsetBar').textContent =
-    'WRM base: ' + toHex(wrm, 4) + '  |  ' +
-    FIELDS.map(field => {
-      const label = field.labelEn.split(' ')[0];
-      const offsets = fieldOffsets(field).map(off => toHex(off, 4)).join('/');
-      return label + ': ' + offsets;
-    }).join('  |  ');
-  document.getElementById('offsetBar').className = 'offset-bar visible';
 
   document.getElementById('fieldsSection').className = 'fields-section visible';
   document.getElementById('actionsSection').style.display = 'flex';
 
-  setStatus(
-    isNST
-      ? '✔ State file loaded — NST format confirmed · WRM base ' + toHex(wrm, 4)
-      : '⚠ Loaded but NST header not found. Check WRM offset in Advanced if values look wrong.',
-    isNST ? 'ok' : 'warn'
-  );
+  if (isNST) {
+    const s = document.getElementById('status');
+    s.textContent = '';
+    s.className = 'status';
+  } else {
+    setStatus('⚠ Loaded but NST header not found. Check WRM offset in Advanced if values look wrong.', 'warn');
+  }
 }
 
 // ── Inputs ───────────────────────────────────────────────────
 for (const field of FIELDS) {
   document.getElementById('val-' + field.id).addEventListener('input', function () {
     const v = Math.min(field.max, Math.max(0, parseInt(this.value) || 0));
-    updateHex(field.id, v, field.bytes);
     markChanged(field.id, v !== originalValues[field.id]);
   });
 }
 
 document.getElementById('wrmOffsetInput').addEventListener('change', () => {
-  updateOffsetLabels();
   if (fileBytes) loadFile(new File([fileBytes], fileName));
 });
 
@@ -550,7 +570,6 @@ document.getElementById('btnReset').addEventListener('click', () => {
   for (const field of FIELDS) {
     const v = originalValues[field.id] ?? 0;
     document.getElementById('val-' + field.id).value = v;
-    updateHex(field.id, v, field.bytes);
     markChanged(field.id, false);
   }
   setStatus('↺ Values reset to original');
@@ -576,7 +595,6 @@ document.getElementById('advToggle').addEventListener('click', () => {
   t.textContent = (open ? '▼' : '▶') + ' ADVANCED · WRM OFFSET OVERRIDE';
 });
 
-updateOffsetLabels();
 </script>
 </body>
 </html>
