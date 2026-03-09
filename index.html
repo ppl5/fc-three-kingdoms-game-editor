@@ -318,71 +318,15 @@
     <div class="advanced-panel" id="advPanel">
       <div class="adv-row">
         <span class="adv-label">WRM CHUNK OFFSET (hex):</span>
-        <input class="adv-input" type="text" id="wrmOffsetInput" value="0x1316" placeholder="0x1316">
-        <span class="adv-desc">Default: <strong>0x1316</strong> — adjust only if values read incorrectly</span>
+        <input class="adv-input" type="text" id="wrmOffsetInput" value="" placeholder="">
+        <span class="adv-desc" id="wrmDefaultText"></span>
       </div>
     </div>
   </div>
 
   <div class="divider">✦ 編輯欄位 ✦</div>
 
-  <div class="fields-section" id="fieldsSection">
-
-    <div class="field-group" id="group-gold">
-      <div class="field-group-header">
-        <span>GOLD · 金錢</span>
-        <span class="field-addr">NES: 0x7F2C (lo) + 0x7F2D (hi) &nbsp;·&nbsp; 16-bit little-endian</span>
-      </div>
-      <div class="field-body">
-        <div class="field-label">金 錢</div>
-        <div class="field-input-wrap">
-          <input class="field-input" type="number" id="val-gold" min="0" max="65535" placeholder="0">
-          <div class="field-meta">
-            <span class="hex-preview" id="hex-gold">HEX: 0x0000</span>
-            <span class="file-offset" id="off-gold">FILE: 0x3242 / 0x3243</span>
-            <span class="range-hint">0 – 65535</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="field-group" id="group-revive">
-      <div class="field-group-header">
-        <span>REVIVE GRASS · 復活草</span>
-        <span class="field-addr">NES: 0x7F36 &nbsp;·&nbsp; 8-bit</span>
-      </div>
-      <div class="field-body">
-        <div class="field-label">復活草</div>
-        <div class="field-input-wrap">
-          <input class="field-input" type="number" id="val-revive" min="0" max="255" placeholder="0">
-          <div class="field-meta">
-            <span class="hex-preview" id="hex-revive">HEX: 0x00</span>
-            <span class="file-offset" id="off-revive">FILE: 0x3256</span>
-            <span class="range-hint">0 – 255</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="field-group" id="group-troops">
-      <div class="field-group-header">
-        <span>TROOPS × 100 · 兵力</span>
-        <span class="field-addr">NES: 0x7F38 &nbsp;·&nbsp; 8-bit</span>
-      </div>
-      <div class="field-body">
-        <div class="field-label">兵 力</div>
-        <div class="field-input-wrap">
-          <input class="field-input" type="number" id="val-troops" min="0" max="255" placeholder="0">
-          <div class="field-meta">
-            <span class="hex-preview" id="hex-troops">HEX: 0x00</span>
-            <span class="file-offset" id="off-troops">FILE: 0x3258</span>
-            <span class="range-hint">0 – 255 (×100 troops)</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div>
+  <div class="fields-section" id="fieldsSection"></div>
 
   <div class="actions" id="actionsSection" style="display:none">
     <button class="btn btn-save"  id="btnSave">⬇ SAVE & DOWNLOAD</button>
@@ -394,35 +338,67 @@
   <div style="height:14px"></div>
 </div>
 
-<div class="footer">FC 南晶版 · NESTOPIA NST FORMAT · WRM CHUNK OFFSET 0x1316 · NES SRAM 0x6000–0x7FFF</div>
+<div class="footer" id="footerNote"></div>
 
+<script src="./config.js"></script>
 <script>
 // ─────────────────────────────────────────────────────────────
 //  NST Save State — Nestopia core (OpenEmu)
 //
 //  Structure: NFO · CPU>RAM · PPU · IMG>MPR>WRM (SRAM) · IMG>MPR>VRM
 //
-//  WRM chunk data starts at file offset 0x1316 (FC南晶版 default).
-//  NES SRAM spans addresses 0x6000–0x7FFF.
-//  File offset = WRM_START + (NES_addr − 0x6000)
-//
-//  Gold   16-bit LE:  NES 0x7F2C/0x7F2D  →  file 0x3242/0x3243
-//  Revive  8-bit:     NES 0x7F36         →  file 0x3256
-//  Troops  8-bit:     NES 0x7F38         →  file 0x3258
+//  Runtime values (WRM base, NES SRAM range, fields) come from config.js.
 // ─────────────────────────────────────────────────────────────
 
-const DEFAULT_WRM   = 0x1316;
-const NES_SRAM_BASE = 0x6000;
+const CONFIG = window.EDITOR_CONFIG;
+if (!CONFIG || !Array.isArray(CONFIG.fields) || CONFIG.fields.length === 0) {
+  throw new Error('Missing or invalid editor config (config.js).');
+}
 
-const FIELDS = {
-  gold:   { nesAddr: 0x7F2C, bytes: 2, max: 65535 },
-  revive: { nesAddr: 0x7F36, bytes: 1, max: 255   },
-  troops: { nesAddr: 0x7F38, bytes: 1, max: 255   },
-};
+const DEFAULT_WRM = CONFIG.defaultWrm;
+const NES_SRAM_BASE = CONFIG.nesSramBase;
+const NES_SRAM_END = CONFIG.nesSramEnd;
+const FIELDS = CONFIG.fields;
 
 let fileBytes      = null;
 let fileName       = '';
 let originalValues = {};
+
+// Build field UI from config so future fields only need config updates.
+const fieldsRoot = document.getElementById('fieldsSection');
+fieldsRoot.innerHTML = FIELDS.map(field => {
+  const nesLabel = field.nesAddrs
+    .map((addr, index) => toHex(addr, 2) + (index === 0 && field.bytes === 2 ? ' (lo)' : index === 1 && field.bytes === 2 ? ' (hi)' : ''))
+    .join(' + ');
+  const bitsLabel = (field.bytes * 8) + '-bit' + (field.bytes === 2 ? ' little-endian' : '');
+  const hexWidth = field.bytes * 2;
+  return '' +
+    '<div class="field-group" id="group-' + field.id + '">' +
+      '<div class="field-group-header">' +
+        '<span>' + field.labelEn + ' · ' + field.labelZh + '</span>' +
+        '<span class="field-addr">NES: ' + nesLabel + ' &nbsp;·&nbsp; ' + bitsLabel + '</span>' +
+      '</div>' +
+      '<div class="field-body">' +
+        '<div class="field-label">' + field.inputLabel + '</div>' +
+        '<div class="field-input-wrap">' +
+          '<input class="field-input" type="number" id="val-' + field.id + '" min="0" max="' + field.max + '" placeholder="0">' +
+          '<div class="field-meta">' +
+            '<span class="hex-preview" id="hex-' + field.id + '">HEX: 0x' + '0'.repeat(hexWidth) + '</span>' +
+            '<span class="file-offset" id="off-' + field.id + '">FILE: --</span>' +
+            '<span class="range-hint">' + field.rangeHint + '</span>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+}).join('');
+
+document.getElementById('wrmOffsetInput').value = toHex(DEFAULT_WRM, 4);
+document.getElementById('wrmOffsetInput').placeholder = toHex(DEFAULT_WRM, 4);
+document.getElementById('wrmDefaultText').innerHTML =
+  'Default: <strong>' + toHex(DEFAULT_WRM, 4) + '</strong> — adjust only if values read incorrectly';
+document.getElementById('footerNote').textContent =
+  'FC 南晶版 · NESTOPIA NST FORMAT · WRM CHUNK OFFSET ' + toHex(DEFAULT_WRM, 4) +
+  ' · NES SRAM ' + toHex(NES_SRAM_BASE, 2) + '-' + toHex(NES_SRAM_END, 2);
 
 // ── Helpers ──────────────────────────────────────────────────
 function getWRM() {
@@ -433,6 +409,10 @@ function getWRM() {
 
 function fileOff(nesAddr) {
   return getWRM() + (nesAddr - NES_SRAM_BASE);
+}
+
+function fieldOffsets(field) {
+  return field.nesAddrs.map(addr => fileOff(addr));
 }
 
 function toHex(val, bytes) {
@@ -447,25 +427,23 @@ function setStatus(msg, type) {
 
 // ── Read / Write ─────────────────────────────────────────────
 function readField(bytes, field) {
-  const off = fileOff(field.nesAddr);
-  if (field.bytes === 1) return bytes[off];
-  return bytes[off] | (bytes[off + 1] << 8);
+  const offs = fieldOffsets(field);
+  if (field.bytes === 1) return bytes[offs[0]];
+  return bytes[offs[0]] | (bytes[offs[1]] << 8);
 }
 
 function writeField(bytes, field, value) {
-  const off = fileOff(field.nesAddr);
-  bytes[off] = value & 0xFF;
-  if (field.bytes === 2) bytes[off + 1] = (value >> 8) & 0xFF;
+  const offs = fieldOffsets(field);
+  bytes[offs[0]] = value & 0xFF;
+  if (field.bytes === 2) bytes[offs[1]] = (value >> 8) & 0xFF;
 }
 
 // ── UI helpers ───────────────────────────────────────────────
 function updateOffsetLabels() {
-  document.getElementById('off-gold').textContent   =
-    'FILE: ' + toHex(fileOff(0x7F2C), 4) + ' / ' + toHex(fileOff(0x7F2D), 4);
-  document.getElementById('off-revive').textContent =
-    'FILE: ' + toHex(fileOff(0x7F36), 4);
-  document.getElementById('off-troops').textContent =
-    'FILE: ' + toHex(fileOff(0x7F38), 4);
+  FIELDS.forEach(field => {
+    const offsets = fieldOffsets(field).map(off => toHex(off, 4)).join(' / ');
+    document.getElementById('off-' + field.id).textContent = 'FILE: ' + offsets;
+  });
 }
 
 function updateHex(id, val, bytes) {
@@ -482,7 +460,8 @@ async function loadFile(file) {
   const buf = await file.arrayBuffer();
   fileBytes = new Uint8Array(buf);
 
-  const needed = fileOff(0x7F38) + 1;
+  const highestOffset = Math.max(...FIELDS.flatMap(field => fieldOffsets(field)));
+  const needed = highestOffset + 1;
   if (fileBytes.length < needed) {
     setStatus(
       '✖ File too small (' + fileBytes.length + ' B). Need ≥ ' + needed +
@@ -496,7 +475,8 @@ async function loadFile(file) {
 
   updateOffsetLabels();
 
-  for (const [id, field] of Object.entries(FIELDS)) {
+  for (const field of FIELDS) {
+    const id = field.id;
     const val = readField(fileBytes, field);
     originalValues[id] = val;
     document.getElementById('val-' + id).value = val;
@@ -514,11 +494,12 @@ async function loadFile(file) {
   document.getElementById('fileInfo').className = 'file-info visible';
 
   document.getElementById('offsetBar').textContent =
-    'WRM base: ' + toHex(wrm, 4) +
-    '  |  Gold lo: ' + toHex(fileOff(0x7F2C), 4) +
-    '  hi: ' + toHex(fileOff(0x7F2D), 4) +
-    '  |  Revive: ' + toHex(fileOff(0x7F36), 4) +
-    '  |  Troops: ' + toHex(fileOff(0x7F38), 4);
+    'WRM base: ' + toHex(wrm, 4) + '  |  ' +
+    FIELDS.map(field => {
+      const label = field.labelEn.split(' ')[0];
+      const offsets = fieldOffsets(field).map(off => toHex(off, 4)).join('/');
+      return label + ': ' + offsets;
+    }).join('  |  ');
   document.getElementById('offsetBar').className = 'offset-bar visible';
 
   document.getElementById('fieldsSection').className = 'fields-section visible';
@@ -533,11 +514,11 @@ async function loadFile(file) {
 }
 
 // ── Inputs ───────────────────────────────────────────────────
-for (const [id, field] of Object.entries(FIELDS)) {
-  document.getElementById('val-' + id).addEventListener('input', function () {
+for (const field of FIELDS) {
+  document.getElementById('val-' + field.id).addEventListener('input', function () {
     const v = Math.min(field.max, Math.max(0, parseInt(this.value) || 0));
-    updateHex(id, v, field.bytes);
-    markChanged(id, v !== originalValues[id]);
+    updateHex(field.id, v, field.bytes);
+    markChanged(field.id, v !== originalValues[field.id]);
   });
 }
 
@@ -551,8 +532,8 @@ document.getElementById('btnSave').addEventListener('click', () => {
   if (!fileBytes) return setStatus('No file loaded.', 'error');
   const modified = new Uint8Array(fileBytes);
 
-  for (const [id, field] of Object.entries(FIELDS)) {
-    const v = Math.min(field.max, Math.max(0, parseInt(document.getElementById('val-' + id).value) || 0));
+  for (const field of FIELDS) {
+    const v = Math.min(field.max, Math.max(0, parseInt(document.getElementById('val-' + field.id).value) || 0));
     writeField(modified, field, v);
   }
 
@@ -567,11 +548,11 @@ document.getElementById('btnSave').addEventListener('click', () => {
 
 // ── Reset ────────────────────────────────────────────────────
 document.getElementById('btnReset').addEventListener('click', () => {
-  for (const [id, field] of Object.entries(FIELDS)) {
-    const v = originalValues[id] ?? 0;
-    document.getElementById('val-' + id).value = v;
-    updateHex(id, v, field.bytes);
-    markChanged(id, false);
+  for (const field of FIELDS) {
+    const v = originalValues[field.id] ?? 0;
+    document.getElementById('val-' + field.id).value = v;
+    updateHex(field.id, v, field.bytes);
+    markChanged(field.id, false);
   }
   setStatus('↺ Values reset to original');
 });

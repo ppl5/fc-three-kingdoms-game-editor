@@ -22,6 +22,17 @@ FC Game Editor for Three-Kindoms
 
 ---
 
+## Project Files
+
+| File | Purpose |
+|------|---------|
+| `index.html` | UI, drag/drop loading, parsing, editing, and download flow |
+| `config.js` | Editable config for WRM/SRAM addresses and field definitions |
+
+To add new editable stats in the future, update `config.js` and reload the page.
+
+---
+
 ## How to Use
 
 ### Step 1 — Extract the State file

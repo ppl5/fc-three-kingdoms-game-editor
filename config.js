@@ -1,0 +1,37 @@
+window.EDITOR_CONFIG = {
+  defaultWrm: 0x1316,
+  nesSramBase: 0x6000,
+  nesSramEnd: 0x7FFF,
+  fields: [
+    {
+      id: "gold",
+      labelEn: "GOLD",
+      labelZh: "金錢",
+      inputLabel: "金 錢",
+      nesAddrs: [0x7F2C, 0x7F2D],
+      bytes: 2,
+      max: 65535,
+      rangeHint: "0 - 65535",
+    },
+    {
+      id: "revive",
+      labelEn: "REVIVE GRASS",
+      labelZh: "復活草",
+      inputLabel: "復活草",
+      nesAddrs: [0x7F36],
+      bytes: 1,
+      max: 255,
+      rangeHint: "0 - 255",
+    },
+    {
+      id: "troops",
+      labelEn: "TROOPS x 100",
+      labelZh: "兵力",
+      inputLabel: "兵 力",
+      nesAddrs: [0x7F38],
+      bytes: 1,
+      max: 255,
+      rangeHint: "0 - 255 (x100 troops)",
+    },
+  ],
+};
