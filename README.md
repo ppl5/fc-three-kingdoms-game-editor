@@ -28,8 +28,20 @@ FC Game Editor for Three-Kindoms
 |------|---------|
 | `index.html` | UI, drag/drop loading, parsing, editing, and download flow |
 | `config.js` | Editable config for WRM/SRAM addresses and field definitions |
+| `state-editor-core.js` | Shared pure logic for offset math and field read/write |
+| `test/state-editor-core.test.js` | Unit tests (Node `node:test`) |
 
 To add new editable stats in the future, update `config.js` and reload the page.
+
+---
+
+## Run Tests
+
+```bash
+npm test
+```
+
+The tests use the committed fixture at `test/fixtures/State`.
 
 ---
 
