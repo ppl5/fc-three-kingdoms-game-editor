@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>三國曹操傳 · Save State Editor</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Serif+SC:wght@400;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Press+Start+2P&family=Noto+Serif+SC:wght@400;700&display=swap');
 
   :root {
     --ink: #1a0a00;
@@ -28,29 +28,16 @@
     flex-direction: column;
     align-items: center;
     padding: 32px 16px 64px;
-    background-image:
-      repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.015) 3px, rgba(255,255,255,0.015) 4px),
-      radial-gradient(ellipse at 50% 0%, #3d1500 0%, #1a0a00 60%);
-  }
-
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: repeating-linear-gradient(
-      to bottom, transparent 0px, transparent 2px,
-      rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px
-    );
-    pointer-events: none;
-    z-index: 999;
+    background-image: linear-gradient(180deg, #2a0f00 0%, #1a0a00 100%);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
   }
 
   .frame {
     width: 100%;
-    max-width: 720px;
+    max-width: 1040px;
     border: 4px solid var(--gold);
-    box-shadow: 0 0 0 8px var(--ink), 0 0 0 10px var(--gold),
-      0 0 40px rgba(200,134,26,0.4), inset 0 0 60px rgba(0,0,0,0.3);
+    box-shadow: 0 0 0 6px var(--ink), 0 0 0 8px var(--gold), 0 0 12px rgba(200,134,26,0.2);
     background: var(--paper);
     position: relative;
   }
@@ -70,59 +57,53 @@
     position: relative;
     overflow: hidden;
   }
-  .header::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0,0,0,0.06) 8px, rgba(0,0,0,0.06) 16px);
-  }
   .title-cn {
     font-family: 'Noto Serif SC', serif;
-    font-weight: 700; font-size: 28px; color: var(--gold);
+    font-weight: 700; font-size: clamp(30px, 4vw, 42px); color: var(--gold);
     letter-spacing: 6px;
-    text-shadow: 2px 2px 0 #5a0000, 0 0 20px rgba(200,134,26,0.6);
+    text-shadow: 2px 2px 0 #5a0000;
     position: relative;
-    animation: glow 3s ease-in-out infinite;
   }
   .title-en {
     font-family: 'Press Start 2P', monospace;
-    font-size: 7px; color: rgba(245,233,200,0.7);
+    font-size: clamp(8px, 1.1vw, 11px); color: rgba(245,233,200,0.78);
     margin-top: 8px; letter-spacing: 2px; position: relative;
   }
   .badge {
     display: inline-block; background: var(--gold); color: var(--ink);
-    font-family: 'Press Start 2P', monospace; font-size: 6px;
-    padding: 3px 8px; margin-top: 10px; letter-spacing: 1px; position: relative;
+    font-family: 'Press Start 2P', monospace; font-size: clamp(7px, 0.95vw, 10px);
+    padding: 6px 10px; margin-top: 12px; letter-spacing: 1px; position: relative;
   }
 
   /* INSTRUCTIONS */
   .instructions {
     background: rgba(26,10,0,0.06);
     border-bottom: 1px solid var(--aged);
-    padding: 14px 24px;
-    font-size: 11px;
+    padding: 18px 28px;
+    font-size: clamp(13px, 1.15vw, 16px);
     color: var(--shadow);
-    line-height: 1.9;
+    line-height: 1.8;
   }
   .instructions strong { color: var(--pixel); }
   .instructions ol { padding-left: 18px; }
   .instructions code {
     font-family: 'Press Start 2P', monospace;
-    font-size: 8px; background: rgba(26,10,0,0.08);
+    font-size: clamp(9px, 0.95vw, 12px); background: rgba(26,10,0,0.08);
     padding: 1px 5px; color: var(--red);
   }
   .instr-title {
     font-family: 'Press Start 2P', monospace;
-    font-size: 7px; color: var(--pixel);
-    margin-bottom: 8px; letter-spacing: 1px;
+    font-size: clamp(10px, 1vw, 13px); color: var(--pixel);
+    margin-bottom: 10px; letter-spacing: 1px;
   }
 
   /* UPLOAD */
-  .upload-section { padding: 22px 24px 0; }
+  .upload-section { padding: 24px 28px 0; }
 
   .drop-zone {
     border: 3px dashed var(--shadow);
     background: rgba(26,10,0,0.04);
-    padding: 28px 20px;
+    padding: 36px 24px;
     text-align: center;
     cursor: pointer;
     transition: all 0.2s;
@@ -136,25 +117,25 @@
   .drop-zone input[type="file"] {
     position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
   }
-  .drop-icon { font-size: 36px; margin-bottom: 10px; display: block; }
+  .drop-icon { font-size: 42px; margin-bottom: 12px; display: block; }
   .drop-label {
     font-family: 'Press Start 2P', monospace;
-    font-size: 8px; color: var(--pixel); line-height: 2;
+    font-size: clamp(10px, 1vw, 13px); color: var(--pixel); line-height: 1.9;
   }
-  .drop-sub { font-size: 11px; color: var(--shadow); margin-top: 6px; }
+  .drop-sub { font-size: clamp(12px, 1.1vw, 15px); color: var(--shadow); margin-top: 8px; }
 
   .file-info {
-    margin: 10px 0 0; padding: 10px 14px;
+    margin: 12px 0 0; padding: 12px 14px;
     background: rgba(42,107,74,0.08); border-left: 3px solid var(--jade);
-    font-family: 'Press Start 2P', monospace; font-size: 7px; color: var(--jade);
+    font-family: 'Press Start 2P', monospace; font-size: clamp(9px, 0.95vw, 11px); color: var(--jade);
     display: none; word-break: break-all; line-height: 2.2;
   }
   .file-info.visible { display: block; }
 
   .offset-bar {
-    margin: 8px 0 0; padding: 8px 14px;
+    margin: 10px 0 0; padding: 10px 14px;
     background: rgba(181,39,27,0.05); border-left: 3px solid var(--red);
-    font-family: 'Press Start 2P', monospace; font-size: 6px; color: var(--red);
+    font-family: 'Press Start 2P', monospace; font-size: clamp(8px, 0.9vw, 10px); color: var(--red);
     display: none; line-height: 2.4;
   }
   .offset-bar.visible { display: block; }
@@ -162,7 +143,7 @@
   /* DIVIDER */
   .divider {
     display: flex; align-items: center; gap: 12px;
-    padding: 18px 24px 0; color: var(--shadow); font-size: 13px; letter-spacing: 3px;
+    padding: 22px 28px 0; color: var(--shadow); font-size: clamp(14px, 1.2vw, 18px); letter-spacing: 3px;
   }
   .divider::before, .divider::after {
     content: ''; flex: 1; height: 1px;
@@ -170,98 +151,97 @@
   }
 
   /* FIELDS */
-  .fields-section { padding: 14px 24px 24px; display: none; }
-  .fields-section.visible { display: block; }
+  .fields-section { padding: 16px 28px 28px; display: none; }
+  .fields-section.visible {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 14px;
+  }
 
   .field-group {
-    margin-bottom: 18px; border: 2px solid var(--aged);
-    background: white; transition: border-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 0; border: 2px solid var(--aged);
+    background: #fffdf6;
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
   .field-group-header {
     background: var(--pixel); color: var(--gold);
-    font-family: 'Press Start 2P', monospace; font-size: 7px;
-    padding: 7px 12px; letter-spacing: 1px;
+    font-family: 'Press Start 2P', monospace; font-size: clamp(9px, 0.95vw, 12px);
+    padding: 10px 14px; letter-spacing: 1px;
     display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px;
   }
-  .field-addr { color: rgba(200,134,26,0.55); font-size: 6px; }
+  .field-addr { color: rgba(200,134,26,0.68); font-size: clamp(8px, 0.85vw, 10px); }
 
-  .field-body { padding: 14px 16px; display: flex; align-items: center; gap: 16px; }
+  .field-body { padding: 18px 18px; display: flex; align-items: center; gap: 20px; }
   .field-label {
     font-family: 'Noto Serif SC', serif;
-    font-weight: 700; font-size: 15px; color: var(--ink); min-width: 76px;
+    font-weight: 700; font-size: clamp(18px, 1.5vw, 22px); color: var(--ink); min-width: 92px;
   }
   .field-input-wrap { flex: 1; display: flex; flex-direction: column; gap: 6px; }
   .field-input {
     width: 100%; border: 2px solid var(--aged); background: var(--paper);
-    font-family: 'Press Start 2P', monospace; font-size: 10px; color: var(--pixel);
-    padding: 9px 12px; outline: none; transition: border-color 0.15s;
+    font-family: 'JetBrains Mono', monospace; font-size: clamp(16px, 1.1vw, 18px); font-weight: 700; color: var(--pixel);
+    padding: 12px 14px; outline: none; transition: border-color 0.15s;
   }
   .field-input:focus { border-color: var(--gold); box-shadow: 0 0 0 2px rgba(200,134,26,0.2); }
   .field-input::-webkit-inner-spin-button { -webkit-appearance: none; }
 
   .field-meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   .hex-preview {
-    font-family: 'Press Start 2P', monospace; font-size: 6px; color: var(--shadow);
-    background: rgba(26,10,0,0.05); padding: 3px 8px; border: 1px solid var(--aged);
+    font-family: 'JetBrains Mono', monospace; font-size: clamp(11px, 0.85vw, 12px); color: var(--shadow);
+    background: rgba(26,10,0,0.05); padding: 6px 8px; border: 1px solid var(--aged);
   }
   .file-offset {
-    font-family: 'Press Start 2P', monospace; font-size: 6px;
+    font-family: 'JetBrains Mono', monospace; font-size: clamp(11px, 0.85vw, 12px);
     color: rgba(181,39,27,0.7); background: rgba(181,39,27,0.04);
-    padding: 3px 8px; border: 1px solid rgba(181,39,27,0.2);
+    padding: 6px 8px; border: 1px solid rgba(181,39,27,0.2);
   }
-  .range-hint { font-size: 10px; color: var(--shadow); }
+  .range-hint { font-size: clamp(12px, 1vw, 14px); color: var(--shadow); }
 
   .field-group.changed .field-group-header { background: var(--jade); }
   .field-group.changed { border-color: var(--jade); box-shadow: 0 0 8px rgba(42,107,74,0.3); }
 
   /* ADVANCED */
-  .advanced-wrap { padding: 14px 24px 0; }
+  .advanced-wrap { padding: 16px 28px 0; }
   .advanced-toggle {
     font-family: 'Press Start 2P', monospace;
-    font-size: 7px; color: var(--shadow);
+    font-size: clamp(9px, 0.95vw, 12px); color: var(--shadow);
     cursor: pointer; user-select: none;
     display: inline-flex; align-items: center; gap: 6px; padding: 4px 0;
   }
   .advanced-toggle:hover { color: var(--pixel); }
   .advanced-panel {
-    margin-top: 10px; padding: 14px 16px;
+    margin-top: 10px; padding: 16px 16px;
     background: rgba(26,10,0,0.04); border: 1px dashed var(--aged);
     display: none;
   }
   .advanced-panel.visible { display: block; }
   .adv-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .adv-label { font-family: 'Press Start 2P', monospace; font-size: 6px; color: var(--pixel); min-width: 140px; }
+  .adv-label { font-family: 'Press Start 2P', monospace; font-size: clamp(8px, 0.85vw, 10px); color: var(--pixel); min-width: 180px; }
   .adv-input {
     border: 2px solid var(--aged); background: var(--paper);
-    font-family: 'Press Start 2P', monospace; font-size: 8px; color: var(--pixel);
-    padding: 5px 10px; outline: none; width: 110px;
+    font-family: 'JetBrains Mono', monospace; font-size: clamp(13px, 0.95vw, 14px); font-weight: 700; color: var(--pixel);
+    padding: 8px 10px; outline: none; width: 126px;
   }
   .adv-input:focus { border-color: var(--gold); }
-  .adv-desc { font-size: 10px; color: var(--shadow); }
+  .adv-desc { font-size: clamp(12px, 1vw, 14px); color: var(--shadow); }
 
   /* BUTTONS */
-  .actions { padding: 0 24px 24px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .actions { padding: 0 28px 28px; display: flex; gap: 14px; flex-wrap: wrap; }
   .btn {
-    font-family: 'Press Start 2P', monospace; font-size: 8px;
-    padding: 12px 18px; border: 3px solid; cursor: pointer;
-    letter-spacing: 1px; position: relative; transition: transform 0.1s;
+    font-family: 'Press Start 2P', monospace; font-size: clamp(10px, 0.95vw, 12px);
+    padding: 14px 20px; border: 3px solid; cursor: pointer;
+    letter-spacing: 1px; transition: transform 0.1s;
   }
   .btn:active { transform: translate(2px, 2px); }
-  .btn::after {
-    content: ''; position: absolute; bottom: -4px; right: -4px;
-    width: 100%; height: 100%; border: 2px solid; z-index: -1;
-  }
   .btn-save { background: var(--red); color: var(--paper); border-color: #8a1010; }
-  .btn-save::after { border-color: #8a1010; background: #8a1010; }
   .btn-save:hover { background: #c8301a; }
   .btn-reset { background: var(--paper); color: var(--pixel); border-color: var(--shadow); }
-  .btn-reset::after { border-color: var(--shadow); background: var(--shadow); }
   .btn-reset:hover { background: var(--aged); }
 
   /* STATUS */
   .status {
-    padding: 10px 24px; font-family: 'Press Start 2P', monospace;
-    font-size: 7px; min-height: 34px; border-top: 1px solid var(--aged);
+    padding: 12px 28px; font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(9px, 0.95vw, 11px); min-height: 38px; border-top: 1px solid var(--aged);
     color: var(--jade); display: none; line-height: 2;
   }
   .status.visible { display: block; }
@@ -270,14 +250,33 @@
 
   .dragon { text-align: center; font-size: 22px; padding: 6px 0 0; letter-spacing: 8px; color: var(--gold); opacity: 0.5; }
 
-  @keyframes glow {
-    0%,100% { text-shadow: 2px 2px 0 #5a0000, 0 0 20px rgba(200,134,26,0.4); }
-    50%      { text-shadow: 2px 2px 0 #5a0000, 0 0 30px rgba(200,134,26,0.8), 0 0 50px rgba(200,134,26,0.3); }
-  }
-
   .footer {
     margin-top: 16px; font-family: 'Press Start 2P', monospace;
-    font-size: 6px; color: rgba(200,134,26,0.35); letter-spacing: 2px; text-align: center;
+    font-size: clamp(8px, 0.8vw, 10px); color: rgba(200,134,26,0.42); letter-spacing: 2px; text-align: center;
+  }
+
+  @media (max-width: 760px) {
+    body { padding: 16px 10px 40px; }
+    .frame {
+      border-width: 3px;
+      box-shadow: 0 0 0 5px var(--ink), 0 0 0 7px var(--gold),
+        0 0 18px rgba(200,134,26,0.2), inset 0 0 20px rgba(0,0,0,0.18);
+    }
+    .header { padding: 16px 14px 14px; }
+    .title-cn { letter-spacing: 3px; }
+    .title-en { letter-spacing: 1px; }
+    .instructions,
+    .upload-section,
+    .advanced-wrap,
+    .fields-section,
+    .actions,
+    .status { padding-left: 14px; padding-right: 14px; }
+    .drop-zone { padding: 24px 14px; }
+    .field-body { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .field-label { min-width: 0; }
+    .field-meta { gap: 6px; }
+    .fields-section.visible { grid-template-columns: 1fr; }
+    .btn { width: 100%; text-align: center; }
   }
 </style>
 </head>
